@@ -1859,6 +1859,80 @@ pub const JSSHA512_256 = struct {
         }
     }
 };
+pub const JSMock = struct {
+    const Mock = Classes.Mock;
+    const GetterType = fn (*Mock, *JSC.JSGlobalObject) callconv(.C) JSC.JSValue;
+    const GetterTypeWithThisValue = fn (*Mock, JSC.JSValue, *JSC.JSGlobalObject) callconv(.C) JSC.JSValue;
+    const SetterType = fn (*Mock, *JSC.JSGlobalObject, JSC.JSValue) callconv(.C) bool;
+    const SetterTypeWithThisValue = fn (*Mock, JSC.JSValue, *JSC.JSGlobalObject, JSC.JSValue) callconv(.C) bool;
+    const CallbackType = fn (*Mock, *JSC.JSGlobalObject, *JSC.CallFrame) callconv(.C) JSC.JSValue;
+
+    /// Return the pointer to the wrapped object.
+    /// If the object does not match the type, return null.
+    pub fn fromJS(value: JSC.JSValue) ?*Mock {
+        JSC.markBinding(@src());
+        return Mock__fromJS(value);
+    }
+
+    /// Get the Mock constructor value.
+    /// This loads lazily from the global object.
+    pub fn getConstructor(globalObject: *JSC.JSGlobalObject) JSC.JSValue {
+        JSC.markBinding(@src());
+        return Mock__getConstructor(globalObject);
+    }
+
+    /// Create a new instance of Mock
+    pub fn toJS(this: *Mock, globalObject: *JSC.JSGlobalObject) JSC.JSValue {
+        JSC.markBinding(@src());
+        if (comptime Environment.allow_assert) {
+            const value__ = Mock__create(globalObject, this);
+            std.debug.assert(value__.as(Mock).? == this); // If this fails, likely a C ABI issue.
+            return value__;
+        } else {
+            return Mock__create(globalObject, this);
+        }
+    }
+
+    /// Modify the internal ptr to point to a new instance of Mock.
+    pub fn dangerouslySetPtr(value: JSC.JSValue, ptr: ?*Mock) bool {
+        JSC.markBinding(@src());
+        return Mock__dangerouslySetPtr(value, ptr);
+    }
+
+    /// Detach the ptr from the thisValue
+    pub fn detachPtr(_: *Mock, value: JSC.JSValue) void {
+        JSC.markBinding(@src());
+        std.debug.assert(Mock__dangerouslySetPtr(value, null));
+    }
+
+    extern fn Mock__fromJS(JSC.JSValue) ?*Mock;
+    extern fn Mock__getConstructor(*JSC.JSGlobalObject) JSC.JSValue;
+
+    extern fn Mock__create(globalObject: *JSC.JSGlobalObject, ptr: ?*Mock) JSC.JSValue;
+
+    extern fn Mock__dangerouslySetPtr(JSC.JSValue, ?*Mock) bool;
+
+    comptime {
+        if (@TypeOf(Mock.constructor) != (fn (*JSC.JSGlobalObject, *JSC.CallFrame) callconv(.C) ?*Mock)) {
+            @compileLog("Mock.constructor is not a constructor");
+        }
+
+        if (@TypeOf(Mock.finalize) != (fn (*Mock) callconv(.C) void)) {
+            @compileLog("Mock.finalize is not a finalizer");
+        }
+
+        if (@TypeOf(Mock.isMockFunction) != CallbackType)
+            @compileLog("Expected Mock.isMockFunction to be a callback");
+        if (@TypeOf(Mock.call) != StaticCallbackType)
+            @compileLog("Expected Mock.call to be a static callback");
+        if (!JSC.is_bindgen) {
+            @export(Mock.call, .{ .name = "MockClass__call" });
+            @export(Mock.constructor, .{ .name = "MockClass__construct" });
+            @export(Mock.finalize, .{ .name = "MockClass__finalize" });
+            @export(Mock.isMockFunction, .{ .name = "MockPrototype__isMockFunction" });
+        }
+    }
+};
 pub const JSExpect = struct {
     const Expect = Classes.Expect;
     const GetterType = fn (*Expect, *JSC.JSGlobalObject) callconv(.C) JSC.JSValue;
@@ -2772,6 +2846,7 @@ comptime {
     _ = JSSHA384;
     _ = JSSHA256;
     _ = JSSHA512_256;
+    _ = JSMock;
     _ = JSExpect;
     _ = JSTextDecoder;
     _ = JSRequest;

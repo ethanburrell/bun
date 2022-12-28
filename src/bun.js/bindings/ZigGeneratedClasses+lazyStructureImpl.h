@@ -89,6 +89,12 @@ void GlobalObject::initGeneratedLazyClasses() {
                  init.setStructure(WebCore::JSSHA512_256::createStructure(init.vm, init.global, init.prototype));
                  init.setConstructor(WebCore::JSSHA512_256::createConstructor(init.vm, init.global, init.prototype));
               });
+    m_JSMock.initLater(
+              [](LazyClassStructure::Initializer& init) {
+                 init.setPrototype(WebCore::JSMock::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
+                 init.setStructure(WebCore::JSMock::createStructure(init.vm, init.global, init.prototype));
+                 init.setConstructor(WebCore::JSMock::createConstructor(init.vm, init.global, init.prototype));
+              });
     m_JSExpect.initLater(
               [](LazyClassStructure::Initializer& init) {
                  init.setPrototype(WebCore::JSExpect::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
@@ -138,6 +144,7 @@ void GlobalObject::visitGeneratedLazyClasses(GlobalObject *thisObject, Visitor& 
       thisObject->m_JSSHA384.visit(visitor);  visitor.append(thisObject->m_JSSHA384SetterValue);
       thisObject->m_JSSHA256.visit(visitor);  visitor.append(thisObject->m_JSSHA256SetterValue);
       thisObject->m_JSSHA512_256.visit(visitor);  visitor.append(thisObject->m_JSSHA512_256SetterValue);
+      thisObject->m_JSMock.visit(visitor);  visitor.append(thisObject->m_JSMockSetterValue);
       thisObject->m_JSExpect.visit(visitor);  visitor.append(thisObject->m_JSExpectSetterValue);
       thisObject->m_JSTextDecoder.visit(visitor);  visitor.append(thisObject->m_JSTextDecoderSetterValue);
       thisObject->m_JSRequest.visit(visitor);  visitor.append(thisObject->m_JSRequestSetterValue);

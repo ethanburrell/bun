@@ -5868,6 +5868,267 @@ extern "C" EncodedJSValue SHA512_256__create(Zig::GlobalObject* globalObject, vo
 
     return JSValue::encode(instance);
 }
+class JSMockPrototype final : public JSC::JSNonFinalObject {
+public:
+    using Base = JSC::JSNonFinalObject;
+
+    static JSMockPrototype* create(JSC::VM& vm, JSGlobalObject* globalObject, JSC::Structure* structure)
+    {
+        JSMockPrototype* ptr = new (NotNull, JSC::allocateCell<JSMockPrototype>(vm)) JSMockPrototype(vm, globalObject, structure);
+        ptr->finishCreation(vm, globalObject);
+        return ptr;
+    }
+
+    DECLARE_INFO;
+    template<typename CellType, JSC::SubspaceAccess>
+    static JSC::GCClient::IsoSubspace* subspaceFor(JSC::VM& vm)
+    {
+        return &vm.plainObjectSpace();
+    }
+    static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype)
+    {
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
+    }
+
+private:
+    JSMockPrototype(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure)
+        : Base(vm, structure)
+    {
+    }
+
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*);
+};
+
+class JSMockConstructor final : public JSC::InternalFunction {
+public:
+    using Base = JSC::InternalFunction;
+    static JSMockConstructor* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSMockPrototype* prototype);
+
+    static constexpr unsigned StructureFlags = Base::StructureFlags;
+    static constexpr bool needsDestruction = false;
+
+    static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype)
+    {
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
+    }
+
+    template<typename, JSC::SubspaceAccess mode> static JSC::GCClient::IsoSubspace* subspaceFor(JSC::VM& vm)
+    {
+        if constexpr (mode == JSC::SubspaceAccess::Concurrently)
+            return nullptr;
+        return WebCore::subspaceForImpl<JSMockConstructor, WebCore::UseCustomHeapCellType::No>(
+            vm,
+            [](auto& spaces) { return spaces.m_clientSubspaceForMockConstructor.get(); },
+            [](auto& spaces, auto&& space) { spaces.m_clientSubspaceForMockConstructor = WTFMove(space); },
+            [](auto& spaces) { return spaces.m_subspaceForMockConstructor.get(); },
+            [](auto& spaces, auto&& space) { spaces.m_subspaceForMockConstructor = WTFMove(space); });
+    }
+
+    void initializeProperties(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSMockPrototype* prototype);
+
+    // Must be defined for each specialization class.
+    static JSC::EncodedJSValue JSC_HOST_CALL_ATTRIBUTES construct(JSC::JSGlobalObject*, JSC::CallFrame*);
+
+    DECLARE_EXPORT_INFO;
+
+private:
+    JSMockConstructor(JSC::VM& vm, JSC::Structure* structure);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject* globalObject, JSMockPrototype* prototype);
+};
+
+extern "C" void* MockClass__construct(JSC::JSGlobalObject*, JSC::CallFrame*);
+JSC_DECLARE_CUSTOM_GETTER(jsMockConstructor);
+extern "C" void MockClass__finalize(void*);
+extern "C" JSC_DECLARE_HOST_FUNCTION(MockClass__call);
+
+extern "C" EncodedJSValue MockPrototype__isMockFunction(void* ptr, JSC::JSGlobalObject* lexicalGlobalObject, JSC::CallFrame* callFrame);
+JSC_DECLARE_HOST_FUNCTION(MockPrototype__isMockFunctionCallback);
+
+STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(JSMockPrototype, JSMockPrototype::Base);
+
+static const HashTableValue JSMockPrototypeTableValues[] = {
+    { "isMockFunction"_s, static_cast<unsigned>(JSC::PropertyAttribute::Function), NoIntrinsic, { HashTableValue::NativeFunctionType, MockPrototype__isMockFunctionCallback, 0 } }
+};
+
+const ClassInfo JSMockPrototype::s_info = { "Mock"_s, &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSMockPrototype) };
+
+JSC_DEFINE_CUSTOM_GETTER(jsMockConstructor, (JSGlobalObject * lexicalGlobalObject, EncodedJSValue thisValue, PropertyName))
+{
+    VM& vm = JSC::getVM(lexicalGlobalObject);
+    auto throwScope = DECLARE_THROW_SCOPE(vm);
+    auto* globalObject = reinterpret_cast<Zig::GlobalObject*>(lexicalGlobalObject);
+    auto* prototype = jsDynamicCast<JSMockPrototype*>(JSValue::decode(thisValue));
+
+    if (UNLIKELY(!prototype))
+        return throwVMTypeError(lexicalGlobalObject, throwScope);
+    return JSValue::encode(globalObject->JSMockConstructor());
+}
+
+JSC_DEFINE_HOST_FUNCTION(MockPrototype__isMockFunctionCallback, (JSGlobalObject * lexicalGlobalObject, CallFrame* callFrame))
+{
+    auto& vm = lexicalGlobalObject->vm();
+
+    JSMock* thisObject = jsDynamicCast<JSMock*>(callFrame->thisValue());
+
+    if (UNLIKELY(!thisObject)) {
+        auto throwScope = DECLARE_THROW_SCOPE(vm);
+        return throwVMTypeError(lexicalGlobalObject, throwScope);
+    }
+
+    JSC::EnsureStillAliveScope thisArg = JSC::EnsureStillAliveScope(thisObject);
+
+    return MockPrototype__isMockFunction(thisObject->wrapped(), lexicalGlobalObject, callFrame);
+}
+
+void JSMockPrototype::finishCreation(JSC::VM& vm, JSC::JSGlobalObject* globalObject)
+{
+    Base::finishCreation(vm);
+    reifyStaticProperties(vm, JSMock::info(), JSMockPrototypeTableValues, *this);
+    JSC_TO_STRING_TAG_WITHOUT_TRANSITION();
+}
+
+void JSMockConstructor::finishCreation(VM& vm, JSC::JSGlobalObject* globalObject, JSMockPrototype* prototype)
+{
+    Base::finishCreation(vm, 0, "Mock"_s, PropertyAdditionMode::WithoutStructureTransition);
+
+    putDirectWithoutTransition(vm, vm.propertyNames->prototype, prototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    ASSERT(inherits(info()));
+}
+
+JSMockConstructor::JSMockConstructor(JSC::VM& vm, JSC::Structure* structure)
+    : Base(vm, structure, MockClass__call, construct)
+{
+}
+
+JSMockConstructor* JSMockConstructor::create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSMockPrototype* prototype)
+{
+    JSMockConstructor* ptr = new (NotNull, JSC::allocateCell<JSMockConstructor>(vm)) JSMockConstructor(vm, structure);
+    ptr->finishCreation(vm, globalObject, prototype);
+    return ptr;
+}
+
+JSC::EncodedJSValue JSC_HOST_CALL_ATTRIBUTES JSMockConstructor::construct(JSC::JSGlobalObject* lexicalGlobalObject, JSC::CallFrame* callFrame)
+{
+    Zig::GlobalObject* globalObject = reinterpret_cast<Zig::GlobalObject*>(lexicalGlobalObject);
+    JSC::VM& vm = globalObject->vm();
+    JSObject* newTarget = asObject(callFrame->newTarget());
+    auto* constructor = globalObject->JSMockConstructor();
+    Structure* structure = globalObject->JSMockStructure();
+    if (constructor != newTarget) {
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        auto* functionGlobalObject = reinterpret_cast<Zig::GlobalObject*>(
+            // ShadowRealm functions belong to a different global object.
+            getFunctionRealm(globalObject, newTarget));
+        RETURN_IF_EXCEPTION(scope, {});
+        structure = InternalFunction::createSubclassStructure(
+            globalObject,
+            newTarget,
+            functionGlobalObject->JSMockStructure());
+    }
+
+    void* ptr = MockClass__construct(globalObject, callFrame);
+
+    if (UNLIKELY(!ptr)) {
+        return JSValue::encode(JSC::jsUndefined());
+    }
+
+    JSMock* instance = JSMock::create(vm, globalObject, structure, ptr);
+
+    return JSValue::encode(instance);
+}
+
+void JSMockConstructor::initializeProperties(VM& vm, JSC::JSGlobalObject* globalObject, JSMockPrototype* prototype)
+{
+}
+
+const ClassInfo JSMockConstructor::s_info = { "Function"_s, &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSMockConstructor) };
+
+extern "C" EncodedJSValue Mock__getConstructor(Zig::GlobalObject* globalObject)
+{
+    return JSValue::encode(globalObject->JSMockConstructor());
+}
+
+JSMock::~JSMock()
+{
+    if (m_ctx) {
+        MockClass__finalize(m_ctx);
+    }
+}
+void JSMock::destroy(JSCell* cell)
+{
+    static_cast<JSMock*>(cell)->JSMock::~JSMock();
+}
+
+const ClassInfo JSMock::s_info = { "Mock"_s, &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSMock) };
+
+void JSMock::finishCreation(VM& vm)
+{
+    Base::finishCreation(vm);
+    ASSERT(inherits(info()));
+}
+
+JSMock* JSMock::create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, void* ctx)
+{
+    JSMock* ptr = new (NotNull, JSC::allocateCell<JSMock>(vm)) JSMock(vm, structure, ctx);
+    ptr->finishCreation(vm);
+    return ptr;
+}
+
+extern "C" void* Mock__fromJS(JSC::EncodedJSValue value)
+{
+    JSC::JSValue decodedValue = JSC::JSValue::decode(value);
+    if (!decodedValue || decodedValue.isUndefinedOrNull())
+        return nullptr;
+
+    JSMock* object = JSC::jsDynamicCast<JSMock*>(decodedValue);
+
+    if (!object)
+        return nullptr;
+
+    return object->wrapped();
+}
+
+extern "C" bool Mock__dangerouslySetPtr(JSC::EncodedJSValue value, void* ptr)
+{
+    JSMock* object = JSC::jsDynamicCast<JSMock*>(JSValue::decode(value));
+    if (!object)
+        return false;
+
+    object->m_ctx = ptr;
+    return true;
+}
+
+extern "C" const size_t Mock__ptrOffset = JSMock::offsetOfWrapped();
+
+void JSMock::analyzeHeap(JSCell* cell, HeapAnalyzer& analyzer)
+{
+    auto* thisObject = jsCast<JSMock*>(cell);
+    if (void* wrapped = thisObject->wrapped()) {
+        // if (thisObject->scriptExecutionContext())
+        //     analyzer.setLabelForCell(cell, "url " + thisObject->scriptExecutionContext()->url().string());
+    }
+    Base::analyzeHeap(cell, analyzer);
+}
+
+JSObject* JSMock::createConstructor(VM& vm, JSGlobalObject* globalObject, JSValue prototype)
+{
+    return WebCore::JSMockConstructor::create(vm, globalObject, WebCore::JSMockConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), jsCast<WebCore::JSMockPrototype*>(prototype));
+}
+
+JSObject* JSMock::createPrototype(VM& vm, JSDOMGlobalObject* globalObject)
+{
+    return JSMockPrototype::create(vm, globalObject, JSMockPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
+}
+
+extern "C" EncodedJSValue Mock__create(Zig::GlobalObject* globalObject, void* ptr)
+{
+    auto& vm = globalObject->vm();
+    JSC::Structure* structure = globalObject->JSMockStructure();
+    JSMock* instance = JSMock::create(vm, globalObject, structure, ptr);
+
+    return JSValue::encode(instance);
+}
 class JSExpectPrototype final : public JSC::JSNonFinalObject {
 public:
     using Base = JSC::JSNonFinalObject;

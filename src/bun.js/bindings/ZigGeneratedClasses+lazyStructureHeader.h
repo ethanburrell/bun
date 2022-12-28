@@ -88,6 +88,12 @@ JSC::Structure* JSSHA512_256Structure() { return m_JSSHA512_256.getInitializedOn
   JSC::LazyClassStructure m_JSSHA512_256;
   bool hasJSSHA512_256SetterValue { false };
   mutable JSC::WriteBarrier<JSC::Unknown> m_JSSHA512_256SetterValue;
+JSC::Structure* JSMockStructure() { return m_JSMock.getInitializedOnMainThread(this); }
+        JSC::JSObject* JSMockConstructor() { return m_JSMock.constructorInitializedOnMainThread(this); }
+        JSC::JSValue JSMockPrototype() { return m_JSMock.prototypeInitializedOnMainThread(this); }
+  JSC::LazyClassStructure m_JSMock;
+  bool hasJSMockSetterValue { false };
+  mutable JSC::WriteBarrier<JSC::Unknown> m_JSMockSetterValue;
 JSC::Structure* JSExpectStructure() { return m_JSExpect.getInitializedOnMainThread(this); }
         JSC::JSObject* JSExpectConstructor() { return m_JSExpect.constructorInitializedOnMainThread(this); }
         JSC::JSValue JSExpectPrototype() { return m_JSExpect.prototypeInitializedOnMainThread(this); }
