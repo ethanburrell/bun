@@ -2069,6 +2069,7 @@ const JSNode = @import("../js_ast.zig").Macro.JSNode;
 const LazyPropertiesObject = @import("../js_ast.zig").Macro.LazyPropertiesObject;
 const ModuleNamespace = @import("../js_ast.zig").Macro.ModuleNamespace;
 const Expect = Test.Expect;
+const Mock = Test.Mock;
 const DescribeScope = Test.DescribeScope;
 const TestScope = Test.TestScope;
 const NodeFS = JSC.Node.NodeFS;

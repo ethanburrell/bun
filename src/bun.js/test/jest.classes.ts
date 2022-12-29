@@ -2,6 +2,20 @@ import { define } from "../scripts/class-definitions";
 
 export default [
   define({
+    name: "Mock",
+    construct: true,
+    call: true,
+    finalize: true,
+    JSType: "0b11101110",
+    klass: {},
+    proto: {
+      isMockFunction: {
+        fn: "isMockFunction",
+        length: 0,
+      },
+    },
+  }),
+  define({
     name: "Expect",
     construct: true,
     call: true,

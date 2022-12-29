@@ -1154,6 +1154,45 @@ pub const Expect = struct {
     }
 };
 
+pub const Mock = struct {
+    invocationCallCounter: u32 = 0,
+
+    pub usingnamespace JSC.Codegen.JSMock;
+
+    pub fn constructor(_: *JSC.JSGlobalObject, _: *JSC.CallFrame) callconv(.C) ?*Mock {
+        return null;
+    }
+
+    pub fn finalize(
+        this: *Mock,
+    ) callconv(.C) void {
+        VirtualMachine.vm.allocator.destroy(this);
+    }
+
+    pub fn call(globalObject: *JSC.JSGlobalObject, callframe: *JSC.CallFrame) callconv(.C) JSC.JSValue {
+        std.debug.print("Call Mock", .{});
+        var writer_: std.fs.File.Writer = Output.writer();
+        var buffered_writer = std.io.bufferedWriter(writer_);
+        var writer = buffered_writer.writer();
+        writer.writeAll("Call Mock") catch unreachable;
+
+        const arguments_ = callframe.arguments(1);
+        if (arguments_.len > 5) {
+            globalObject.throw("expect() requires one argument", .{});
+            return .zero;
+        }
+
+        var mock = globalObject.bunVM().allocator.create(Mock) catch unreachable;
+        mock.* = .{};
+        const mock_js_value = mock.toJS(globalObject);
+        return mock_js_value;
+    }
+
+    pub fn isMockFunction(this: *Mock, _: *JSC.JSGlobalObject, _: *JSC.CallFrame) callconv(.C) JSC.JSValue {
+        return JSC.JSValue.jsNumber(this.invocationCallCounter);
+    }
+};
+
 pub const TestScope = struct {
     label: string = "",
     parent: *DescribeScope,
@@ -1483,6 +1522,7 @@ pub const DescribeScope = struct {
             .describe = .{ .get = createDescribe, .name = "describe" },
             .it = .{ .get = createTest, .name = "it" },
             .@"test" = .{ .get = createTest, .name = "test" },
+            .@"fn" = .{ .get = createFn, .name = "fn" },
         },
     );
 
@@ -1700,6 +1740,16 @@ pub const DescribeScope = struct {
         _: js.ExceptionRef,
     ) js.JSObjectRef {
         return JSC.Jest.Expect.getConstructor(ctx).asObjectRef();
+    }
+
+    pub fn createFn(
+        _: *DescribeScope,
+        ctx: js.JSContextRef,
+        _: js.JSValueRef,
+        _: js.JSStringRef,
+        _: js.ExceptionRef,
+    ) js.JSValueRef {
+        return Mock.getConstructor(ctx).asObjectRef();
     }
 
     pub fn createTest(
