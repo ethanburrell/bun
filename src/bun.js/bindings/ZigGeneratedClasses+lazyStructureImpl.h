@@ -1,4 +1,16 @@
 void GlobalObject::initGeneratedLazyClasses() {
+    m_JSFileSystemRouter.initLater(
+              [](LazyClassStructure::Initializer& init) {
+                 init.setPrototype(WebCore::JSFileSystemRouter::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
+                 init.setStructure(WebCore::JSFileSystemRouter::createStructure(init.vm, init.global, init.prototype));
+                 init.setConstructor(WebCore::JSFileSystemRouter::createConstructor(init.vm, init.global, init.prototype));
+              });
+    m_JSMatchedRoute.initLater(
+              [](LazyClassStructure::Initializer& init) {
+                 init.setPrototype(WebCore::JSMatchedRoute::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
+                 init.setStructure(WebCore::JSMatchedRoute::createStructure(init.vm, init.global, init.prototype));
+                 
+              });
     m_JSTCPSocket.initLater(
               [](LazyClassStructure::Initializer& init) {
                  init.setPrototype(WebCore::JSTCPSocket::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
@@ -22,6 +34,12 @@ void GlobalObject::initGeneratedLazyClasses() {
                  init.setPrototype(WebCore::JSSubprocess::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
                  init.setStructure(WebCore::JSSubprocess::createStructure(init.vm, init.global, init.prototype));
                  
+              });
+    m_JSServerWebSocket.initLater(
+              [](LazyClassStructure::Initializer& init) {
+                 init.setPrototype(WebCore::JSServerWebSocket::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
+                 init.setStructure(WebCore::JSServerWebSocket::createStructure(init.vm, init.global, init.prototype));
+                 init.setConstructor(WebCore::JSServerWebSocket::createConstructor(init.vm, init.global, init.prototype));
               });
     m_JSSHA1.initLater(
               [](LazyClassStructure::Initializer& init) {
@@ -77,24 +95,6 @@ void GlobalObject::initGeneratedLazyClasses() {
                  init.setStructure(WebCore::JSCryptoHasher::createStructure(init.vm, init.global, init.prototype));
                  init.setConstructor(WebCore::JSCryptoHasher::createConstructor(init.vm, init.global, init.prototype));
               });
-    m_JSServerWebSocket.initLater(
-              [](LazyClassStructure::Initializer& init) {
-                 init.setPrototype(WebCore::JSServerWebSocket::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
-                 init.setStructure(WebCore::JSServerWebSocket::createStructure(init.vm, init.global, init.prototype));
-                 init.setConstructor(WebCore::JSServerWebSocket::createConstructor(init.vm, init.global, init.prototype));
-              });
-    m_JSFileSystemRouter.initLater(
-              [](LazyClassStructure::Initializer& init) {
-                 init.setPrototype(WebCore::JSFileSystemRouter::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
-                 init.setStructure(WebCore::JSFileSystemRouter::createStructure(init.vm, init.global, init.prototype));
-                 init.setConstructor(WebCore::JSFileSystemRouter::createConstructor(init.vm, init.global, init.prototype));
-              });
-    m_JSMatchedRoute.initLater(
-              [](LazyClassStructure::Initializer& init) {
-                 init.setPrototype(WebCore::JSMatchedRoute::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
-                 init.setStructure(WebCore::JSMatchedRoute::createStructure(init.vm, init.global, init.prototype));
-                 
-              });
     m_JSExpect.initLater(
               [](LazyClassStructure::Initializer& init) {
                  init.setPrototype(WebCore::JSExpect::createPrototype(init.vm, reinterpret_cast<Zig::GlobalObject*>(init.global)));
@@ -141,10 +141,13 @@ void GlobalObject::initGeneratedLazyClasses() {
 template<typename Visitor>
 void GlobalObject::visitGeneratedLazyClasses(GlobalObject *thisObject, Visitor& visitor)
 {
+      thisObject->m_JSFileSystemRouter.visit(visitor);  visitor.append(thisObject->m_JSFileSystemRouterSetterValue);
+      thisObject->m_JSMatchedRoute.visit(visitor);  visitor.append(thisObject->m_JSMatchedRouteSetterValue);
       thisObject->m_JSTCPSocket.visit(visitor);  visitor.append(thisObject->m_JSTCPSocketSetterValue);
       thisObject->m_JSTLSSocket.visit(visitor);  visitor.append(thisObject->m_JSTLSSocketSetterValue);
       thisObject->m_JSListener.visit(visitor);  visitor.append(thisObject->m_JSListenerSetterValue);
       thisObject->m_JSSubprocess.visit(visitor);  visitor.append(thisObject->m_JSSubprocessSetterValue);
+      thisObject->m_JSServerWebSocket.visit(visitor);  visitor.append(thisObject->m_JSServerWebSocketSetterValue);
       thisObject->m_JSSHA1.visit(visitor);  visitor.append(thisObject->m_JSSHA1SetterValue);
       thisObject->m_JSMD5.visit(visitor);  visitor.append(thisObject->m_JSMD5SetterValue);
       thisObject->m_JSMD4.visit(visitor);  visitor.append(thisObject->m_JSMD4SetterValue);
@@ -154,9 +157,6 @@ void GlobalObject::visitGeneratedLazyClasses(GlobalObject *thisObject, Visitor& 
       thisObject->m_JSSHA256.visit(visitor);  visitor.append(thisObject->m_JSSHA256SetterValue);
       thisObject->m_JSSHA512_256.visit(visitor);  visitor.append(thisObject->m_JSSHA512_256SetterValue);
       thisObject->m_JSCryptoHasher.visit(visitor);  visitor.append(thisObject->m_JSCryptoHasherSetterValue);
-      thisObject->m_JSServerWebSocket.visit(visitor);  visitor.append(thisObject->m_JSServerWebSocketSetterValue);
-      thisObject->m_JSFileSystemRouter.visit(visitor);  visitor.append(thisObject->m_JSFileSystemRouterSetterValue);
-      thisObject->m_JSMatchedRoute.visit(visitor);  visitor.append(thisObject->m_JSMatchedRouteSetterValue);
       thisObject->m_JSExpect.visit(visitor);  visitor.append(thisObject->m_JSExpectSetterValue);
       thisObject->m_JSTextDecoder.visit(visitor);  visitor.append(thisObject->m_JSTextDecoderSetterValue);
       thisObject->m_JSRequest.visit(visitor);  visitor.append(thisObject->m_JSRequestSetterValue);
