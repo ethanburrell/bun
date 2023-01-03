@@ -1832,6 +1832,29 @@ pub const JSFunction = extern struct {
     };
 };
 
+pub const FunctionConstructor = extern struct {
+    pub const shim = Shimmer("JSC", "FunctionConstructor", @This());
+    // bytes: shim.Bytes,
+    // pub const Type = InternalFunction;
+    const cppFn = shim.cppFn;
+    pub const include = "JavaScriptCore/FunctionConstructor.h";
+    pub const name = "JSC::FunctionConstructor";
+    pub const namespace = "JSC";
+
+    pub fn exists(value: JSValue) void {
+        cppFn("exists", .{value});
+    }
+
+    pub fn create(globalObject: *JSGlobalObject, prototype: JSValue) *FunctionConstructor {
+        return cppFn(
+            "create",
+            .{ globalObject, prototype },
+        );
+    }
+
+    pub const Extern = [_][]const u8{"exists"};
+};
+
 pub const JSGlobalObject = extern struct {
     pub const shim = Shimmer("JSC", "JSGlobalObject", @This());
     bytes: shim.Bytes,

@@ -10,6 +10,7 @@ const Environment = @import("../../env.zig");
 
 const JSC = @import("bun").JSC;
 const js = JSC.C;
+const FunctionConstructor = JSC.FunctionConstructor;
 
 const logger = @import("bun").logger;
 const Method = @import("../../http/method.zig").Method;
@@ -1080,6 +1081,88 @@ pub const Expect = struct {
         return .zero;
     }
 
+    pub fn toMatchSnapshot(_: *Expect, globalObject: *JSC.JSGlobalObject, _: *JSC.CallFrame) callconv(.C) JSValue {
+        std.debug.print("===== toMatchSnapshot ======\n", .{});
+        // FunctionConstructor.exists(JSValue.jsNumber(1));
+        var s = globalObject.bunVM().allocator.alloc(ZigString, 1) catch unreachable;
+        // var s = &ZigString.init("[5]");
+        s[0] = ZigString.init("function anonymous(exports) { exports[`changes the class when hovered 1`] = `3` }");
+        // var functionConstructor: *FunctionConstructor = FunctionConstructor.create(globalObject, JSValue.createStringArray(globalObject, s.ptr, 1, false));
+
+        // new approach
+        // functionConstructor();
+        // const functionConstructor: *FunctionConstructor = FunctionConstructor.create(vm, FunctionConstructor::createStructure(vm, this, m_functionPrototype.get()), m_functionPrototype.get());
+
+        // exception = NULL;
+        // functionBody = JSStringCreateWithUTF8CString("return Array;");
+        // function = JSObjectMakeFunction(context, NULL, 0, NULL, functionBody, NULL, 1, &exception);
+        // JSStringRelease(functionBody);
+        // ASSERT(!exception);
+        // ASSERT(JSObjectIsFunction(context, function));
+        // v = JSObjectCallAsFunction(context, function, NULL, 0, NULL, NULL);
+        // ASSERT(v);
+        // ASSERT(JSValueIsEqual(context, v, arrayConstructor, NULL));
+
+        // var attribute_iterator_class_ = JSC.C.JSObjectMakeFunction(
+        //     globalObject,
+        //     name,
+        //     1,
+        //     &[_]JSC.C.JSStringRef{param_name},
+        //     JSC.C.JSStringCreateStatic(attribute_iterator_code.ptr, attribute_iterator_code.len),
+        //     JSC.C.JSStringCreateStatic(attribute_iterator_path.ptr, attribute_iterator_path.len),
+        //     0,
+        //     exception_ptr,
+        // );
+
+        var exception_ptr: ?[*]JSC.JSValueRef = null;
+        var function_name = JSC.C.JSStringCreateStatic("anonymous", "anonymous".len);
+        // var functionBody = JSC.C.JSStringCreateStatic("exports[`changes the class when hovered 1`] = `3`", "exports[`changes the class when hovered 1`] = `3`".len);
+        // var functionBody = JSC.C.JSStringCreateStatic("function anonymous(exports) { exports[`changes the class when hovered 1`] = `3` }", "function anonymous(exports) { exports[`changes the class when hovered 1`] = `3` }".len);        var functionBody = JSC.C.JSStringCreateStatic("function anonymous(exports) { exports[`changes the class when hovered 1`] = `3` }", "function anonymous(exports) { exports[`changes the class when hovered 1`] = `3` }".len);
+        var functionBody = JSC.C.JSStringCreateStatic("exports['hi'] = 4;", "exports['hi'] = 4;".len);
+        // var null_url: js.JSStringRef = null;
+        var param_name = JSC.C.JSStringCreateStatic("exports", "exports".len);
+        const null_url: string = "file:///bun-vfs/lolhtml/AttributeIterator.js";
+        const function: js.JSObjectRef = JSC.C.JSObjectMakeFunction(globalObject, function_name, 1, &[_]JSC.C.JSStringRef{param_name}, functionBody, JSC.C.JSStringCreateStatic(null_url.ptr, null_url.len), 0, exception_ptr);
+
+        const expect_arg: js.JSValueRef = JSValue.createEmptyObject(globalObject, 0).asRef();
+        const arguments = [1]js.JSValueRef{expect_arg};
+        //[1]js.OpaqueJSValue{null};
+        //{JSValue.createEmptyObject(globalObject, 0).asObjectRef()};
+        _ = JSC.C.JSObjectCallAsFunction(globalObject, function, null, 1, &arguments, exception_ptr) orelse unreachable;
+        // var v: js.JSValueRef
+        // JSObjectCallAsFunctionReturnValue or callback?
+
+        // const value: JSValue = JSC.JSValue.fromRef(v orelse null);
+
+        // var snapshot_contents_string = JSC.ZigString.Empty;
+        // value.toZigString(&snapshot_contents_string, globalObject);
+        // var snapshot_contents: bun.string = snapshot_contents_string.slice();
+        // const a: JSValue = value.getTruthy(globalObject, "changes the class when hovered 1");
+        // if (a) |z| {
+        // if (arguments[0]) {
+
+        // This code is to fetch and see if an argument exists
+        // taken from bun.zig line 1028
+        // var arg = &arguments;
+        var exists = JSC.JSValue.fromRef(expect_arg.?).getTruthy(globalObject, "hi");
+        // var a = arguments[0] orelse unreachable; //orelse return JSValue.jsBoolean(false);
+        // const exists: JSValue = a.
+        std.debug.print("before if statement\n", .{});
+        // if (exists) |z| {
+        var value: JSC.JSValue = exists orelse return JSValue.jsBoolean(false);
+        var snapshot_contents_string = JSC.ZigString.Empty;
+        value.toZigString(&snapshot_contents_string, globalObject);
+        var snapshot_contents: bun.string = snapshot_contents_string.slice();
+        globalObject.throw("toMatchSnapshot value {s}", .{snapshot_contents});
+        // }
+        // globalObject.throw("toMatchSnapshot value {s}", .{"hi"});
+
+        // return value;
+        return JSValue.jsBoolean(true);
+        // JSValue.fromRef(v);
+        //
+    }
+
     pub const toHaveBeenCalledTimes = notImplementedJSCFn;
     pub const toHaveBeenCalledWith = notImplementedJSCFn;
     pub const toHaveBeenLastCalledWith = notImplementedJSCFn;
@@ -1093,7 +1176,6 @@ pub const Expect = struct {
     pub const toContainEqual = notImplementedJSCFn;
     pub const toMatch = notImplementedJSCFn;
     pub const toMatchObject = notImplementedJSCFn;
-    pub const toMatchSnapshot = notImplementedJSCFn;
     pub const toMatchInlineSnapshot = notImplementedJSCFn;
     pub const toThrow = notImplementedJSCFn;
     pub const toThrowErrorMatchingSnapshot = notImplementedJSCFn;

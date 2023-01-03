@@ -1153,6 +1153,36 @@ void JSC__JSFunction__optimizeSoon(JSC__JSValue JSValue0)
     JSC::optimizeNextInvocation(value);
 }
 
+#pragma mark - JSC::FunctionConstructor
+
+void JSC__FunctionConstructor__exists(JSC__JSValue JSValue0)
+{
+    JSC::JSValue value = JSC::JSValue::decode(JSValue0);
+
+    JSC::optimizeNextInvocation(value);
+}
+
+JSC::FunctionConstructor* JSC__FunctionConstructor__create(JSC__JSGlobalObject* globalObject, JSC__JSValue JSValue0)
+{
+    JSC::JSValue value = JSC::JSValue::decode(JSValue0);
+    JSC::VM& vm = globalObject->vm();
+    JSC::Structure* structure = JSC::FunctionConstructor::createStructure(
+        globalObject->vm(),
+        globalObject,
+        value
+    );
+
+    JSC::FunctionPrototype* prototype = JSC::FunctionPrototype::create(vm, FunctionPrototype::createStructure(vm, globalObject, jsNull()));
+
+    // FunctionConstructor::create(vm, FunctionConstructor::createStructure(vm, this, m_functionPrototype.get()), m_functionPrototype.get());
+
+    return JSC::FunctionConstructor::create(
+        globalObject->vm(),
+        structure,
+        prototype
+    );
+}
+
 void JSC__JSValue__jsonStringify(JSC__JSValue JSValue0, JSC__JSGlobalObject* arg1, uint32_t arg2,
     ZigString* arg3)
 {

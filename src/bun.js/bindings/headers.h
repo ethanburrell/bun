@@ -225,6 +225,11 @@ CPP_DECL uint32_t JSC__JSInternalPromise__status(const JSC__JSInternalPromise* a
 
 CPP_DECL void JSC__JSFunction__optimizeSoon(JSC__JSValue JSValue0);
 
+#pragma mark - JSC::FunctionConstructor
+
+CPP_DECL void JSC__FunctionConstructor__exists(JSC__JSValue JSValue0);
+CPP_DECL JSC::FunctionConstructor* JSC__FunctionConstructor__create(JSC__JSGlobalObject* globalObject, JSC__JSValue JSValue0);
+
 #pragma mark - JSC::JSGlobalObject
 
 CPP_DECL VirtualMachine* JSC__JSGlobalObject__bunVM(JSC__JSGlobalObject* arg0);
