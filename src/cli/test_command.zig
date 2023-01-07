@@ -1,4 +1,5 @@
 const bun = @import("bun");
+const clap = @import("bun").clap;
 const string = bun.string;
 const Output = bun.Output;
 const Global = bun.Global;
@@ -296,8 +297,28 @@ const Scanner = struct {
 };
 
 pub const TestCommand = struct {
+    updateSnapshot: bool = true,
     pub const name = "wiptest";
+    const params = [_]clap.Param(clap.Help){
+        clap.parseParam("--help                            Print this help menu") catch unreachable,
+        clap.parseParam("--updateSnapshot                     updateSnapshot in bun test") catch unreachable,
+    };
     pub fn exec(ctx: Command.Context) !void {
+        // ctx.args.
+        // var cli = try CommandLineArguments.parse(ctx.allocator, params, &_ctx);
+        // var diag = clap.Diagnostic{};
+        // var args = clap.parse(clap.Help, &params, .{ .allocator = ctx.allocator, .diagnostic = &diag }) catch |err| {
+        //     std.debug.print("errored out \n", .{});
+        //     clap.help(Output.errorWriter(), &params) catch {};
+        //     Output.errorWriter().writeAll("\n") catch {};
+        //     diag.report(Output.errorWriter(), err) catch {};
+        //     return err;
+        // };
+
+        // if (args.flag("--updateSnapshot")) {
+        //     std.debug.print("TestCommand --updateSnapshot", .{});
+        // }
+
         if (comptime is_bindgen) unreachable;
         // print the version so you know its doing stuff if it takes a sec
         Output.prettyErrorln("<r><b>bun wiptest <r><d>v" ++ Global.package_json_version_with_sha ++ "<r>", .{});
@@ -515,6 +536,7 @@ pub const TestCommand = struct {
         }
 
         var modules: []*Jest.DescribeScope = reporter.jest.files.items(.module_scope)[file_start..];
+        std.debug.print("Number of Describes {}\n", .{modules.len});
         for (modules) |module| {
             vm.onUnhandledRejectionCtx = null;
             vm.onUnhandledRejection = Jest.TestRunnerTask.onUnhandledRejection;
@@ -532,6 +554,9 @@ pub const TestCommand = struct {
                     vm.eventLoop().tick();
                 }
             }
+            // @TODO fix this so that every test doesn't override files
+            std.debug.print("appendToFile\n", .{});
+            module.snapshot.appendToFile();
             _ = vm.global.vm().runGC(false);
         }
         vm.global.vm().clearMicrotaskCallback();
